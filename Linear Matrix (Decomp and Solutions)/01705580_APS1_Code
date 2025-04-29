@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Oct 15 15:50:22 2021
+
+@author: hills
+"""
+import numpy as np
+
+def decomp(A):
+    size=len(A)
+    L=np.zeros((size, size))
+    U=np.zeros((size, size))
+    for i in range(size):
+        L[i][i]=1
+    for j in range(size):
+        for i in range(j+1):
+            sumk=0
+            for k in range(i):
+                sumk+=L[i][k]*U[k][j]
+                
+            U[i][j]=A[i][j]-sumk
+        for u in range(size-j-1):   
+            i=j+u+1
+           
+            sumi=0
+            for k in range(j):
+                sumi+=L[i][k]*U[k][j]
+            L[i][j]=1/(U[j][j])*(A[i][j]-sumi)
+    return U, L
+
+def forwardsub(L, b, c):
+    size=len(b)
+    x=np.zeros(size)
+    if c==1:
+        b=np.zeros((size, size))
+        for i in range(size):
+            b[i][i]=1    
+        x=np.zeros((size, size))
+    x[0]=b[0]/L[0][0]
+    for u in range(len(b)-1):
+        sumi=0
+        i=u+1
+        for j in range(i):
+            sumi+=L[i][j]*x[j]
+        x[i]=(b[i]-sumi)/L[i][i]
+        
+    return x
+
+
+def backsub(U, b, c):
+    size=len(b)
+    x=np.zeros(size)
+    if c==1:
+        b=np.zeros((size, size))
+        for i in range(size):
+            b[i][i]=1   
+        x=np.zeros((size, size))
+    x[size-1]=b[size-1]/U[size-1][size-1]
+    for u in range(size):
+        sumi=0
+        i=size-(u+1)
+        for r in range(size-i-1):
+            j=r+i+1
+            sumi+=U[i][j]*x[j]
+        x[i]=(b[i]-sumi)/U[i][i]
+        
+    return x
+
+        
+        
+    
+    
+    
+ #initial A and b       
+A=[[3,1,0,0,0], [3,8,4,0,0], [0,9,20,10,0], [0,0,-22,31,-25], [0,0,0,-35,61]]
+b=[2,5,-4,8,9]
+U,L=decomp(A)
+    
+y=forwardsub(L,b, 0)
+
+x=backsub(U,y, 0)
+
+Li= forwardsub(L,b,1)
+
+Ui=backsub(U,b,1)
+
+Ai = np.dot(Ui, Li)
+
+IA= np.dot(A, Ai)
+
+print("Lower Matrix:", L)
+print()
+print("Upper Matrix:", U)
+print()
+print("Step in Process: y", y)
+print()
+print("final x value: x", x)
+print()
+print("Inverse Li: L**-1", Li)
+print()
+print("Inverse Ui: U**-1", Ui)
+print()
+print("Inverse A: A**-1", Ai)
+print()
+print("Identity from A . A**-1: I", IA)
+
+
+    
