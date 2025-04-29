@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 12 13:28:51 2021
+
+@author: hills
+"""
+import math
+from math import e
+import time
+import matplotlib.pyplot as plt
+import numpy as np
+
+def dft22(times,freq,  f):
+    j=complex(0,1)
+  
+    far=0
+    for t in range(len(times)):
+        far+=(f[t]*e**((j*times[t]*freq)))
+    return far
+
+def idft22(freq,times,  f):
+    j=complex(0,1)
+  
+    far=0
+    for t in range(len(freq)):
+        far+=(f[t]*e**(-(j*times*freq[t])))
+    return far
+
+def dft2(times,freq,  f):
+    j=complex(0,1)
+
+    far=0
+    for t in times:
+        far+=(f(t)*e**((j*t*freq)))
+    return far
+
+def run2(s, st, en, f):
+    h=(en-st)/s
+    times=[]
+    w=[]
+    func=[]
+    for i in range(s):
+        times.append(i*h +st)
+        w.append((2*math.pi*i)/(s*h))
+        func.append(f(times[-1]))
+    print(func)
+    plt.plot(times, func)
+    plt.show()
+    ny=math.pi/h  
+    plt.show()    
+    final=[]
+    for p in w:
+        final.append(dft2(times, p, f))
+    
+    rel=[]
+    im=[]
+    relc=[]
+    imc=[]
+    
+    
+    for i in range(len(times)):
+        rel.append(final[i].real)
+        im.append(final[i].imag)
+        
+    
+    return rel, im, w, times,final
+
+
+def run22(times,func):   
+    final=[]
+    w=[]
+    h=times[2]-times[1]
+    s=len(times)
+    for i in range(s):
+        w.append((2*math.pi*i)/(s*h))
+    
+    for p in w:
+        final.append(dft22(times, p, func))
+    
+    rel=[]
+    im=[]
+    
+    
+    for i in range(len(times)):
+        rel.append(final[i].real)
+        im.append(final[i].imag)
+        
+  
+    return rel, im,  w, times, final
+
+def irun22(freqs,times, func):   
+    final=[]
+    for p in times:
+        final.append(idft22(freqs, p, func)/len(times))
+    
+    rel=[]
+    im=[]
+    relc=[]
+    imc=[]
+    
+    for i in range(len(times)):
+        rel.append(final[i].real)
+        im.append(final[i].imag)
+        
+    
+    return rel, im, freqs, times, final
+
+def adj1(w):
+    wi = [x / ((2*math.pi)) for x in w]
+    return wi
+    
+def adj2(w):
+    wi = [x *150 for x in w]
+    return wi
+
+#%%  Question 1
+def fr(x):
+    return np.cos(4*math.pi*x)
+
+rel,im, w, t, func =run2(800, 0, 2, fr)
+
+wi=adj1(w)
+fplot=[]
+for ti in t:
+    fplot.append(fr(ti))
+plt.plot(t, fplot)
+plt.title('Original Graph')
+plt.xlabel("Time")
+plt.ylabel("Amplitude")
+plt.show()
+
+plt.plot(wi, rel)
+plt.title('Real Part of Transformed Function - Cut at 0 to 4')
+plt.xlabel("Freq value")
+plt.ylabel("Amplitude")
+plt.xlim(0, 4)
+plt.show()
+'''
+plt.plot(wi, rel)
+plt.title('Real Part of Transformed Function')
+plt.xlabel("Freq value")
+plt.ylabel("Amplitude")
+plt.show()
+'''
+rel, im, freqs, times, final=irun22(w,t, func)
+
+
+
+plt.show()
+plt.plot(times, rel)
+plt.title('Function Transformed Back')
+plt.xlabel("Time")
+plt.ylabel("Amplitude")
+
+
+#%% Question 2
+#Finding bandwidth of function fi
+
+def fi(x):
+    if abs(x)<10:
+        return 1-abs(x)/10
+    else:
+        return 0
+
+rel, im, w, times, final1=run2(600, -100,100, fi)
+wi = adj2(w)
+mw = [x*-1 for x in wi] #adjusting factor for my freq dom
+print(mw)
+halfi=int(len(w)/2)
+hrel=rel[:halfi]
+hrel.reverse()
+flrel = (hrel+ rel[:halfi])
+half=mw[:halfi]
+half.reverse()
+print(mw)
+flw= (half+ wi[:halfi])
+plt.plot(flw, flrel)
+plt.title('Real Part of Transformed Function')
+plt.xlabel("Freq value")
+plt.ylabel("Amplitude")
+plt.show()
+plt.plot(flw, flrel)
+plt.title('Real Part of Transformed Function')
+plt.xlabel("Freq value")
+plt.ylabel("Amplitude")
+plt.xlim(-400, 400)
+plt.show()
+'''
+plt.plot(wi, rrel)
+plt.title('Real Part of Transformed Function')
+plt.xlabel("Freq value")
+plt.ylabel("Amplitude")
+#plt.xlim([, 5])  
+plt.show()
+'''
+
+#%% Question 3
+#Finding bandwidth of function fi
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def fi(x):
+    if abs(x-250)<10:
+        return 1-abs(x-250)/10
+    else:
+        return 0
+    
+df = pd.read_csv("/Users/hills/Desktop/Computational Physics/AD.csv")
+fd=df.to_numpy()
+
+rel1, im1, w1, times1, final1=run2(511, 0,500, fi)
+
+t= np.linspace(0,((len(df)-1)/2), len(df))
+rel, im, w, times, final2=run22(t, fd)
+
+
+    
+cor=np.conj(final2)*final1
+
+corr=[]
+for f in range(len(final2)):
+    corr.append(final1[f]*(final2[f].conjugate()))
+
+rel, im, freqs, times, func =irun22(w,times, corr)
+
+   
+
+
+
+ #adjusting factor for my freq dom
+
+halfi=int(len(w)/2)
+hrel=rel[halfi:]
+hrel.reverse()
+rel.reverse()
+#flrel = (hrel+ rel[:halfi])
+flrel = (rel[halfi:]+ rel[:halfi])
+
+#times=[t for t in times]
+
+plt.plot(times, flrel)
+plt.plot(times, fd)
+plt.title('Real Part of Transformed Function')
+plt.xlabel("Time")
+plt.ylabel("Amplitude")
+
+plt.show()
+
+
+#%%
+#junk 
+
+
+
+
+
+
+
+
