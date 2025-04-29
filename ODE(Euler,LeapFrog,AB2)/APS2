@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 28 18:10:50 2021
+
+@author: hills
+"""
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+
+def fv(v):
+    return -v
+    
+    
+
+def eulers(N,v0,t0, tf, fv):
+    dt=(tf-t0)/N
+    v=[]
+    t=[]
+    v.append(v0)
+    t.append(t0)
+    for n in range(N):
+        t.append(t0+(n)*dt)
+        v.append(v[n]+fv(v[n])*dt)
+    return v, t
+
+def AB2(N,v0,t0, tf, fv):
+    dt=(tf-t0)/N
+    v=[]
+    t=[]
+    v.append(v0)
+    v.append(v0+fv(v[0])*dt)
+    t.append(t0)
+    t.append(t0+dt)
+    for n in range(1,N):
+        t.append(t0+(n+2)*dt)
+        v.append(v[n]+ 0.5*(3*fv(v[n])-fv(v[n-1]))*dt)
+    return v,t
+
+def leapfrog(N,v0,t0, tf, fv):
+   dt=(tf-t0)/N
+   v=[]
+   t=[]
+   v.append(v0)
+   v.append(v0+fv(v[0])*dt)
+   t.append(t0)
+   t.append(t0+dt)
+   for n in range(1,N):
+       t.append(t0+(n)*dt)
+       v.append(v[n-1]+2*fv(v[n])*dt)
+   return v,t
+
+def accur(v, t, t1, te):
+    error=[]
+    for i in range(len(v)):
+        error.append(abs(v[i]-te[i]))
+    plt.plot(t, error)
+    plt.title('Absolute error')
+    return error     
+    
+    
+
+v,t=eulers(100, 1, 0, 5, fv)
+
+te=[]
+for tr in t:
+    te.append(math.exp(-tr))
+
+    
+va,ta=AB2(100, 1, 0, 5, fv)
+vl,tl=leapfrog(100, 1, 0, 5, fv)
+
+
+
+plt.plot( t, v, label="Eulers")
+plt.title('Eulers Compared to Analytic')
+plt.plot(t, te, label="Analytic")
+plt.legend(loc="upper right")
+plt.xlabel("Time (s/RC)")
+plt.ylabel("Voltage (V0)")
+
+plt.show()
+
+plt.plot(ta, va, label="AB2")
+plt.plot(t, te, label="Analytic")
+plt.title('AB2 Compared to Analytic')
+plt.legend(loc="upper right")
+plt.xlabel("Time (s/RC)")
+plt.ylabel("Voltage (V0)")
+
+plt.show()
+
+plt.plot(tl, vl, label="leapfrog")
+plt.plot(t, te, label="Analytic")
+plt.title('Leapfrog Compared to Analytic')
+plt.legend(loc="upper right")
+plt.xlabel("Time (s/RC)")
+plt.ylabel("Voltage (V0)")
+
+plt.show()
+
